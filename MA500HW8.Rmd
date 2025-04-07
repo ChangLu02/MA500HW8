@@ -1,0 +1,104 @@
+---
+title: "MA500HW8"
+author: "Chang Lu"
+date: "2025-04-05"
+output: pdf_document
+---
+
+```{r}
+library(multcomp)
+```
+
+### Question 2
+
+```{r}
+treatment <- factor(c(1,2,3,4))
+flowers <- c("Rose", "Carnation", "Daisy", "Tulip")
+temps <- c("Cold", "Medium", "Warm")
+
+block_combinations <- expand.grid(Flower = flowers, Temp = temps)
+randomized_plan <- do.call(rbind, lapply(1:nrow(block_combinations), function(i) {
+  t <- sample(treatment)
+  data.frame(
+    Flower = block_combinations$Flower[i],
+    Temp = block_combinations$Temp[i],
+    FlowerNumber = 1:4,
+    Treatment = t
+  )
+}))
+write.csv(randomized_plan, "TwoBlockRCBPlan.csv", row.names = FALSE)
+
+
+head(randomized_plan)
+```
+
+
+### Question 6
+
+#### (b)
+
+```{r}
+# Create the data
+Patient <- rep(1:5, each = 5)
+Week <- rep(1:5, times = 5)
+Treatment <- c("B", "E", "A", "C", "D",
+               "D", "A", "E", "B", "C",
+               "E", "B", "C", "D", "A",
+               "A", "C", "D", "E", "B",
+               "C", "D", "B", "A", "E")
+
+Score <- c(2.92, 2.43, 2.19, 2.71, 2.71,
+           2.86, 1.64, 3.02, 3.03, 3.03,
+           1.97, 2.50, 2.47, 2.65, 1.89,
+           1.99, 2.39, 2.37, 2.33, 2.71,
+           2.64, 2.31, 2.44, 1.89, 2.78)
+
+sleep_data <- data.frame(Patient = factor(Patient),
+                         Week = factor(Week),
+                         Treatment = factor(Treatment),
+                         Score = Score)
+```
+
+```{r}
+# Fit the Latin Square ANOVA model
+model <- aov(Score ~ Treatment + Patient + Week, data = sleep_data)
+
+summary(model)
+```
+
+
+#### (c)
+```{r}
+# Define contrast: A vs. average of B, C, D, E
+contrast_matrix <- rbind("Placebo vs Others" = c(1, -0.25, -0.25, -0.25, -0.25))
+glht_test <- glht(model, linfct = mcp(Treatment = contrast_matrix))
+summary(glht_test)
+```
+
+```{r}
+# Subset data to exclude placebo (A)
+drug_data <- subset(sleep_data, Treatment != "A")
+
+# Refit model
+drug_model <- aov(Score ~ Treatment + Patient + Week, data = drug_data)
+
+# Pairwise comparison among B, C, D, E
+TukeyHSD(drug_model, "Treatment")
+```
+
+#### (d)
+```{r}
+model <- aov(Score ~ Treatment + Patient + Week, data = sleep_data)
+
+# 1. Residuals vs Fitted
+plot(model, which = 1)
+
+# 2. Normal Q-Q plot
+plot(model, which = 2)
+
+# 3. Scale-Location plot
+plot(model, which = 3)
+
+# 4. Residuals vs Leverage
+plot(model, which = 5)
+```
