@@ -5,8 +5,9 @@ date: "2025-04-05"
 output: pdf_document
 ---
 
-```{r}
+```{r, include=FALSE}
 library(multcomp)
+library(daewr)
 ```
 
 ### Question 2
@@ -101,4 +102,31 @@ plot(model, which = 3)
 
 # 4. Residuals vs Leverage
 plot(model, which = 5)
+```
+
+### Question 8
+
+```{r}
+# Exercise 6 Chapter 2
+rmin <- 2         # min number of replicates to try
+rmax <- 10        # max number of replicates to try
+alpha <- rep(0.05, rmax - rmin + 1)  # significance level
+nlev <- 4         # number of treatment levels
+nreps <- rmin:rmax  # replicates to consider
+
+Delta <- 2        # Delta = 2\sigma
+sigma <- 1        # Set sigma = 1 for simplicity; Delta is in units of sigma
+
+power <- Fpower1(alpha, nlev, nreps, Delta, sigma)
+power
+```
+
+```{r}
+# Question 8 (b)
+sigma <- sqrt(0.4)
+nlev <- 4
+nreps <- 4
+Delta <- 2
+alpha <- 0.05
+Fpower1(alpha, nlev, nreps, Delta, sigma)
 ```
